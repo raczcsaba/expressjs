@@ -3,6 +3,18 @@ var express = require("express")
 var app = express()
 var db = require("./database.js")
 var md5 = require("md5")
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+// get config vars
+dotenv.config();
+
+// access config var
+process.env.TOKEN_SECRET;
+
+function generateAccessToken(username) {
+  return jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+}
 
 var bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -24,6 +36,12 @@ app.use(function (req, res, next) {
 	
 app.get("/", (req, res, next) => {
     res.json({"message":"Ok"})
+});
+
+// test token
+app.get("/token", (req, res, next) => {
+	const token = generateAccessToken({ username: "req.body.username" });
+    res.json({"message":token})
 });
 
 // Insert here other API endpoints
