@@ -13,7 +13,16 @@ dotenv.config();
 process.env.TOKEN_SECRET;
 
 function generateAccessToken(username) {
-  return jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+  return jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: '1800s', algorithm: 'HS256' });
+}
+
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    if (token == null) return res.sendStatus(401)
+    else next()
+    //jwt.verify(token, process.env.TOKEN_SECRET)
 }
 
 var bodyParser = require("body-parser");
@@ -40,12 +49,12 @@ app.get("/", (req, res, next) => {
 
 // test token
 app.get("/token", (req, res, next) => {
-	const token = generateAccessToken({ username: "req.body.username" });
+	const token = generateAccessToken({ username: "Béla" });
     res.json({"message":token})
 });
 
 // Insert here other API endpoints
-app.get("/api/users", (req, res, next) => {
+app.get("/api/users", authenticateToken,(req, res, next) => {
     var sql = "select * from user"
     var params = []
     db.all(sql, params, (err, rows) => {
