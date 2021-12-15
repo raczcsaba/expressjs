@@ -13,7 +13,16 @@ dotenv.config();
 process.env.TOKEN_SECRET;
 
 function generateAccessToken(username) {
-  return jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: '1800s', algorithm: 'HS256' });
+  return  jwt.sign({
+          username: username,
+      },
+      process.env.TOKEN_SECRET, {
+          expiresIn: "1hr",
+          algorithm: 'HS256'
+      });
+
+
+    //jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: '1800s', algorithm: 'HS256' });
 }
 
 function authenticateToken(req, res, next) {
@@ -21,7 +30,11 @@ function authenticateToken(req, res, next) {
     const token = authHeader && authHeader.split(' ')[1]
 
     if (token == null) return res.sendStatus(401)
-    else next()
+    //console.log(process.env.TOKEN_SECRET);
+    //jwt.verify(token,process.env.TOKEN_SECRET,function (err, token){
+
+    //});
+    next();
     //jwt.verify(token, process.env.TOKEN_SECRET)
 }
 
@@ -47,13 +60,38 @@ app.get("/", (req, res, next) => {
     res.json({"message":"Ok"})
 });
 
-// test token
-app.get("/token", (req, res, next) => {
-	const token = generateAccessToken({ username: "Béla" });
-    res.json({"message":token})
+// Insert here other API endpoints
+
+//test login
+app.post("/api/login",(req, res, next) => {
+    var errors=[]
+    if (!req.body.name){
+        errors.push("Nincs név megadva");
+    }
+    if (!req.body.password){
+        errors.push("Nincs jelszó megadva");
+    }
+    if (errors.length){
+        res.status(400).json({"error":errors.join(",")});
+        return;
+    }
+    var sql = "select * from user where name = ?"
+    var params = [req.body.name]
+    db.get(sql, params, (err, row) => {
+        if (err) {
+            res.status(400).json({"error":err.message});
+            return;
+        }
+        if(row.password=req.body.password){
+            res.json({
+                "message":"success",
+                "data":generateAccessToken(req.body.name)
+            })
+        }
+
+    });
 });
 
-// Insert here other API endpoints
 app.get("/api/users", authenticateToken,(req, res, next) => {
     var sql = "select * from user"
     var params = []
