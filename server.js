@@ -27,8 +27,10 @@ function generateAccessToken(id) {
 var bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
 // Server port
-var HTTP_PORT = 8000 
+var HTTP_PORT = 8000
+
 // Start server
 app.listen(HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
@@ -36,35 +38,27 @@ app.listen(HTTP_PORT, () => {
 // Root endpoint
 
 app.use(function (req, res, next) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-      res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    if(req.path!='/api/login') {
-        console.log("hmmm1")
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    //routing
+    if(req.path!=='/api/login') {
 
         //token authorization
         const token = req.headers['authorization']
         if (token == null) {
+            //no token
             res.status(401).send('Lépj be először');
-            console.log("hmmm2");
-            return;
-
         }
-        console.log("hmmm3")
-
         jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
-            if (err == null) {
-                //console.log("hmmm4")
-            }else{
-                console.log("hmmm6")
+            if (err != null) {
+                //bad token
                 res.status(401).send('Érvénytelen token');
-                return;
-                console.log("hmmm7")
             }
         });
-        console.log("hmmm5")
-        next();
     }
+    next();
 });
 
 // Insert here other API endpoints
@@ -104,7 +98,6 @@ app.post("/api/login",(req, res, next) => {
 
 app.get("/api/product",(req, res, next) => {
 
-    console.log("hmmm7")
     var sql = "select * from product"
     var params = []
     db.all(sql, params, (err, rows) => {
