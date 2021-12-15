@@ -84,7 +84,7 @@ app.post("/api/login",(req, res, next) => {
         if (row==null) {
             return res.status(400).json({"error":"Nincs ilyen felhasználó"});
         }
-        if(row.password.localeCompare(req.body.password)===0){
+        if(row.password.includes(req.body.password)){
             res.json({
                 "message":"success",
                 "data":generateAccessToken(row.id)
