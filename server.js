@@ -112,7 +112,6 @@ app.get("/api/product",(req, res, next) => {
       });
 });
 
-
 // Default response for any other request
 app.use(function(req, res){
     res.status(404);
