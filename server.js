@@ -47,12 +47,12 @@ app.use(function (req, res, next) {
         const token = req.headers['authorization']
         if (token == null) {
             //no token
-            res.status(401).send('Lépj be először');
+            res.status(401).json({"error":"Lépj be először"});
         }else{
             jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
                 if (err != null) {
                     //bad token
-                    res.status(401).send('Érvénytelen token');
+                    res.status(401).send({"error":"Érvénytelen token"});
                 }else {
                     next();
                 }
@@ -77,20 +77,18 @@ app.post("/api/login",(req, res, next) => {
     }
     if (errors.length){
         res.status(400).json({"error":errors.join(",")});
-        return;
     }
     var sql = "select * from user where name = ?"
     var params = [req.body.name]
     db.get(sql, params, (err, row) => {
-        if (err) {
-            res.status(400).json({"error":err.message});
+        if (row==null) {
+            return res.status(400).json({"error":"Nincs ilyen felhasználó"});
         }
-        if(row.password==req.body.password){
+        if(row.password.localeCompare(req.body.password)===0){
             res.json({
                 "message":"success",
                 "data":generateAccessToken(row.id)
             })
-            next();
         }else {
             res.status(400).json({"error": "rossz jelszo"});
         }
@@ -104,7 +102,6 @@ app.get("/api/product",(req, res, next) => {
     db.all(sql, params, (err, rows) => {
         if (err) {
           res.status(400).json({"error":err.message});
-          return;
         }
         res.json({
             "message":"success",
