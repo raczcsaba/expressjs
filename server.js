@@ -41,27 +41,25 @@ app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
 
     //routing
-    if(req.path!=='/api/login') {
+    if(req.path.includes('/api/login')) {
+        return next()
+    }
 
-        //token authorization
-        const token = req.headers['authorization']
-        if (token == null) {
-            //no token
-            res.status(401).json({"error":"Lépj be először"});
-        }else{
-            jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
-                if (err != null) {
-                    //bad token
-                    res.status(401).send({"error":"Érvénytelen token"});
-                }else {
-                    next();
-                }
-            });
+    //token
+    const token = req.headers['authorization']
+    if (token == null) {
+        //no token
+        return res.status(401).json({"error":"Lépj be először"});
+    }
+    jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
+        if (err != null) {
+            //bad token
+            res.status(401).json({"error":"Érvénytelen token"});
         }
-    }
-    else {
-        next();
-    }
+        else{
+            next();
+        }
+    });
 });
 
 // Insert here other API endpoints
@@ -76,7 +74,7 @@ app.post("/api/login",(req, res, next) => {
         errors.push("Nincs jelszó megadva");
     }
     if (errors.length){
-        res.status(400).json({"error":errors.join(",")});
+        return res.status(400).json({"error":errors.join(",")});
     }
     var sql = "select * from user where name = ?"
     var params = [req.body.name]
@@ -84,13 +82,13 @@ app.post("/api/login",(req, res, next) => {
         if (row==null) {
             return res.status(400).json({"error":"Nincs ilyen felhasználó"});
         }
-        if(row.password.includes(req.body.password)){
+        if(row.password.localeCompare(req.body.password)==0){
             res.json({
                 "message":"success",
                 "data":generateAccessToken(row.id)
             })
         }else {
-            res.status(400).json({"error": "rossz jelszo"});
+            res.status(400).json({"error":"rossz jelszo"});
         }
     });
 });
