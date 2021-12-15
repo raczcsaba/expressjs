@@ -2,10 +2,8 @@
 var express = require("express")
 var app = express()
 var db = require("./database.js")
-var md5 = require("md5")
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
-var router = express.Router()
 
 // get config vars
 dotenv.config();
@@ -50,15 +48,20 @@ app.use(function (req, res, next) {
         if (token == null) {
             //no token
             res.status(401).send('Lépj be először');
+        }else{
+            jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
+                if (err != null) {
+                    //bad token
+                    res.status(401).send('Érvénytelen token');
+                }else {
+                    next();
+                }
+            });
         }
-        jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
-            if (err != null) {
-                //bad token
-                res.status(401).send('Érvénytelen token');
-            }
-        });
     }
-    next();
+    else {
+        next();
+    }
 });
 
 // Insert here other API endpoints
@@ -81,7 +84,6 @@ app.post("/api/login",(req, res, next) => {
     db.get(sql, params, (err, row) => {
         if (err) {
             res.status(400).json({"error":err.message});
-            return;
         }
         if(row.password==req.body.password){
             res.json({
@@ -91,7 +93,6 @@ app.post("/api/login",(req, res, next) => {
             next();
         }else {
             res.status(400).json({"error": "rossz jelszo"});
-            return;
         }
     });
 });
