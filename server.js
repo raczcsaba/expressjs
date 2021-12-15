@@ -14,15 +14,13 @@ process.env.TOKEN_SECRET;
 
 function generateAccessToken(username) {
   return  jwt.sign({
-          username: username,
+          username: username
       },
       process.env.TOKEN_SECRET, {
           expiresIn: "1hr",
           algorithm: 'HS256'
       });
 
-
-    //jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: '1800s', algorithm: 'HS256' });
 }
 
 function authenticateToken(req, res, next) {
@@ -30,12 +28,9 @@ function authenticateToken(req, res, next) {
     const token = authHeader && authHeader.split(' ')[1]
 
     if (token == null) return res.sendStatus(401)
-    //console.log(process.env.TOKEN_SECRET);
-    //jwt.verify(token,process.env.TOKEN_SECRET,function (err, token){
 
-    //});
-    next();
-    //jwt.verify(token, process.env.TOKEN_SECRET)
+    else next();
+
 }
 
 var bodyParser = require("body-parser");
@@ -82,13 +77,16 @@ app.post("/api/login",(req, res, next) => {
             res.status(400).json({"error":err.message});
             return;
         }
-        if(row.password=req.body.password){
+        if(row.password==req.body.password){
             res.json({
                 "message":"success",
                 "data":generateAccessToken(req.body.name)
             })
+            return;
+        }else {
+            res.status(400).json({"error": "rossz jelszo"});
+            return;
         }
-
     });
 });
 
