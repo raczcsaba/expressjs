@@ -29,6 +29,9 @@ app.use(bodyParser.json());
 // Server port
 var HTTP_PORT = 8000
 
+let cors = require('cors');
+app.use(cors());
+
 // Start server
 app.listen(HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
